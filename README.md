@@ -4,6 +4,14 @@ A one-thumb portrait arcade game: aim and release one rubber ball into a toy cab
 
 **Status: Pass 1 prototype** (prove the loop). The design brief this is built from lives in [`Pocket_Ricochet/`](Pocket_Ricochet/00_START_HERE.md), extracted from the uploaded development-pack ZIP.
 
+## Play on a phone
+
+- **Hosted (GitHub Pages):** `.github/workflows/deploy-pages.yml` tests, builds and publishes the game on every push to `main`. One-time setup: in the repository's **Settings → Pages**, set **Source** to **GitHub Actions**. The game is then at `https://<owner>.github.io/<repo>/`. GitHub Pages needs a public repository or a paid plan.
+- **Install it:** open the link in Safari (iPhone) or Chrome (Android) and choose **Add to Home Screen**. It then launches full screen in portrait, with its own icon.
+- **From your computer:** run `npm run dev` and open the printed **Network** URL on a phone on the same Wi-Fi.
+
+On phones taller than 9:16, the canvas grows upward and fills the space with a cabinet marquee. The playfield and controls never change size, and the cabinet stays anchored to the bottom so the control strip sits under your thumb. Pinch-zoom, double-tap zoom and long-press menus are blocked. Sound starts on your first tap; iPhone's silent switch mutes it.
+
 ## Run it
 
 Requires Node 20.19+ or 22.12+.
@@ -58,6 +66,7 @@ src/
   scenes/      GameScene: Phaser presentation, which reads the session and reacts to its events
   ui/          code-drawn art, pooled effects, synthesized sound, buttons
 tests/         Vitest checks (49)
+public/        web app manifest and home-screen icons
 docs/pass1/    gameplay screenshots from the Pass 1 review
 ```
 

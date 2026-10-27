@@ -1,5 +1,18 @@
 # Changelog
 
+## Mobile playability (2026-10-27)
+
+### Added
+- Tall-screen layout: on phones taller than 9:16 the canvas grows upward to fill the screen, and the extra space shows a lit cabinet marquee. The playfield geometry is unchanged. Rotation, browser-bar resizes and split screen re-fit live.
+- The cabinet is anchored to the bottom of the screen, inside the safe area, so the control strip is always within thumb reach.
+- Home-screen install: web app manifest (fullscreen, portrait), 192/512 icons, apple-touch-icon, iOS standalone metadata.
+- iOS hardening: audio unlocks and resumes from native `touchend`/`click`, including a silent-buffer unlock for older iOS. Pinch, double-tap zoom and long-press menus are blocked.
+- GitHub Pages workflow: test, build and deploy on push to `main`.
+
+### Verified
+- Production build in Chromium with emulated touch at iPhone SE, iPhone 15, Pixel 7, 360×640 Android and iPad mini sizes. The canvas fills the screen with no gap at the bottom, renders at device resolution, a real touch starts the game and fires a shot, and there are no console errors. Rotating to landscape and back re-fits correctly.
+- Still not tested on a physical phone.
+
 ## Pass 1: prove the loop (2026-10-27)
 
 ### Added

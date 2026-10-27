@@ -11,6 +11,18 @@ export class Sfx {
   private noise: AudioBuffer | null = null;
   private debrisEnds: number[] = [];
 
+  /**
+   * iOS Safari only starts or resumes audio inside a native touchend/click handler, so listen
+   * on the document directly rather than relying on the game's input processing. The listeners
+   * stay attached so audio resumes after the app returns from the background.
+   */
+  attachUnlockListeners(): void {
+    const unlock = () => this.unlock();
+    for (const type of ['touchend', 'pointerup', 'click', 'keydown']) {
+      document.addEventListener(type, unlock, { capture: true, passive: true });
+    }
+  }
+
   /** Call from a pointer/touch handler. Safe to call repeatedly. */
   unlock(): void {
     try {
@@ -25,6 +37,11 @@ export class Sfx {
         this.noise = this.ctx.createBuffer(1, len, this.ctx.sampleRate);
         const data = this.noise.getChannelData(0);
         for (let i = 0; i < len; i++) data[i] = Math.random() * 2 - 1;
+        // Older iOS needs a sound started inside the gesture to unlock output.
+        const silent = this.ctx.createBufferSource();
+        silent.buffer = this.ctx.createBuffer(1, 1, this.ctx.sampleRate);
+        silent.connect(this.ctx.destination);
+        silent.start(0);
       }
       if (this.ctx.state === 'suspended') void this.ctx.resume();
     } catch {

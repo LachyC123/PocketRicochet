@@ -31,6 +31,13 @@ export class GameScene extends Phaser.Scene {
   private sfx = new Sfx();
   private fx = new Effects();
   private zoomFactor = 1;
+  /** Logical units of extra height above the cabinet on screens taller than 9:16. */
+  private extra = 0;
+  private marqueeG!: Phaser.GameObjects.Graphics;
+  private bulbG!: Phaser.GameObjects.Graphics;
+  private marqueeSmall!: Phaser.GameObjects.Text;
+  private marqueeBig!: Phaser.GameObjects.Text;
+  private bulbPhase = -1;
   private reducedMotion = false;
   private motionQuery: MediaQueryList | null = null;
 
@@ -84,24 +91,28 @@ export class GameScene extends Phaser.Scene {
     super('game');
   }
 
-  init(data: { zoom?: number }): void {
+  init(data: { zoom?: number; extra?: number }): void {
     this.zoomFactor = data.zoom ?? 1;
+    this.extra = data.extra ?? 0;
   }
 
   create(): void {
-    const cam = this.cameras.main;
-    cam.setZoom(this.zoomFactor);
-    cam.centerOn(T.logicalWidth / 2, T.logicalHeight / 2);
-    cam.setBackgroundColor(PALETTE.ink);
+    this.cameras.main.setBackgroundColor(PALETTE.ink);
 
     this.save = SaveRepository.fromBrowser();
     this.sfx.enabled = this.save.data.settings.sound;
+    this.sfx.attachUnlockListeners();
     this.session = new GameSession({ save: this.save });
     this.session.on((e) => this.onEvent(e));
     this.motionQuery = window.matchMedia?.('(prefers-reduced-motion: reduce)') ?? null;
     this.applyMotionSetting();
 
     Draw.drawCabinet(this.add.graphics().setDepth(0), T);
+    this.marqueeG = this.add.graphics().setDepth(1);
+    this.bulbG = this.add.graphics().setDepth(2);
+    this.marqueeSmall = this.text(180, 0, 'P O C K E T', 13, CSS.cream, 3).setOrigin(0.5);
+    this.marqueeBig = this.text(180, 0, 'RICOCHET', 36, CSS.coral, 3).setOrigin(0.5).setStroke(CSS.ink, 7);
+    this.setLayout(this.extra);
     this.worldG = this.add.graphics().setDepth(10);
     this.fxG = this.add.graphics().setDepth(20);
     this.ballG = this.add.graphics().setDepth(30);
@@ -367,6 +378,73 @@ export class GameScene extends Phaser.Scene {
     p.vy = -36;
   }
 
+  // ---- tall-screen layout -----------------------------------------------------
+
+  /**
+   * The playfield keeps its 360×640 logical geometry. On screens taller than 9:16 the canvas
+   * grows upward by `extra` logical units (negative world y), filled by a cabinet marquee.
+   */
+  setLayout(extra: number): void {
+    this.extra = extra;
+    const cam = this.cameras.main;
+    cam.setSize(this.scale.width, this.scale.height);
+    cam.setZoom(this.zoomFactor);
+    cam.centerOn(T.logicalWidth / 2, (T.logicalHeight - extra) / 2);
+    this.drawMarquee();
+  }
+
+  private marqueeBox(): { top: number; height: number } | null {
+    const room = this.extra - 16;
+    if (room < 64) return null;
+    const height = Math.min(104, room);
+    // Sit the sign just above the score strip so the cabinet reads as one object.
+    return { top: -height - 8, height };
+  }
+
+  private drawMarquee(): void {
+    const g = this.marqueeG;
+    g.clear();
+    this.bulbPhase = -1;
+    const box = this.marqueeBox();
+    this.marqueeSmall.setVisible(!!box);
+    this.marqueeBig.setVisible(!!box);
+    if (!box) {
+      this.bulbG.clear();
+      return;
+    }
+    const { top, height } = box;
+    g.fillStyle(PALETTE.inkLight, 1);
+    g.fillRoundedRect(20, top, 320, height, 22);
+    g.fillStyle(PALETTE.strip, 1);
+    g.fillRoundedRect(32, top + 12, 296, height - 24, 14);
+    g.lineStyle(2, PALETTE.inkSoft, 1);
+    g.strokeRoundedRect(32, top + 12, 296, height - 24, 14);
+    const cy = top + height / 2;
+    const compact = height < 90;
+    this.marqueeSmall.setPosition(180, cy - 20).setVisible(!compact);
+    this.marqueeBig.setPosition(180, compact ? cy : cy + 8).setFontSize(compact ? 28 : 36);
+  }
+
+  /** Chasing marquee bulbs; static under reduced motion. */
+  private drawBulbs(): void {
+    const box = this.marqueeBox();
+    if (!box) return;
+    const phase = this.reducedMotion ? 0 : Math.floor(this.clock / 0.18) % 3;
+    if (phase === this.bulbPhase) return;
+    this.bulbPhase = phase;
+    const g = this.bulbG;
+    g.clear();
+    const { top, height } = box;
+    const points: { x: number; y: number }[] = [];
+    for (let x = 34; x <= 326; x += 18) points.push({ x, y: top + 6 }, { x, y: top + height - 6 });
+    for (let y = top + 24; y <= top + height - 24; y += 18) points.push({ x: 26, y }, { x: 334, y });
+    points.forEach((p, i) => {
+      const lit = this.reducedMotion || i % 3 === phase;
+      g.fillStyle(PALETTE.yellow, lit ? 1 : 0.28);
+      g.fillCircle(p.x, p.y, 2.6);
+    });
+  }
+
   // ---- overlays ---------------------------------------------------------------
 
   private refreshOverlay(): void {
@@ -420,14 +498,14 @@ export class GameScene extends Phaser.Scene {
     const s = this.session.state;
     if (s === 'HOME') {
       g.fillStyle(PALETTE.ink, 0.62);
-      g.fillRect(0, 0, T.logicalWidth, T.logicalHeight);
+      g.fillRect(0, -this.extra, T.logicalWidth, T.logicalHeight + this.extra);
     } else if (s === 'PAUSED') {
       g.fillStyle(PALETTE.ink, 0.55);
-      g.fillRect(0, 0, T.logicalWidth, T.logicalHeight);
+      g.fillRect(0, -this.extra, T.logicalWidth, T.logicalHeight + this.extra);
       this.drawPanel(g, 140, 516);
     } else if (s === 'RESULTS') {
       g.fillStyle(PALETTE.ink, 0.5);
-      g.fillRect(0, 0, T.logicalWidth, T.logicalHeight);
+      g.fillRect(0, -this.extra, T.logicalWidth, T.logicalHeight + this.extra);
       this.drawPanel(g, 150, 528);
       if (this.session.lastSummary?.newBest) {
         g.fillStyle(PALETTE.yellow, 1);
@@ -484,6 +562,7 @@ export class GameScene extends Phaser.Scene {
     this.worldG.setPosition(ox, oy);
     this.fxG.setPosition(ox, oy);
 
+    this.drawBulbs();
     this.drawWorld();
     this.drawBallLayer();
     this.drawHud();
