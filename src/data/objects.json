@@ -1,0 +1,62 @@
+{
+  "schemaVersion": 1,
+  "objects": [
+    {
+      "id": "crate",
+      "shape": "box",
+      "width": 32,
+      "height": 28,
+      "hp": 1,
+      "baseScore": 10,
+      "behaviour": "break"
+    },
+    {
+      "id": "paint_pot",
+      "shape": "circle",
+      "radius": 15,
+      "hp": 1,
+      "baseScore": 15,
+      "behaviour": "explode",
+      "blastRadius": 64
+    },
+    {
+      "id": "bell",
+      "shape": "circle",
+      "radius": 14,
+      "hp": null,
+      "baseScore": 0,
+      "behaviour": "arm_next_destruction_multiplier",
+      "multiplier": 2,
+      "oncePerShot": true
+    },
+    {
+      "id": "bumper",
+      "shape": "circle",
+      "radius": 20,
+      "hp": null,
+      "baseScore": 0,
+      "behaviour": "reflect",
+      "minimumPass": 2
+    },
+    {
+      "id": "jar",
+      "shape": "box",
+      "width": 20,
+      "height": 32,
+      "hp": 1,
+      "baseScore": 20,
+      "behaviour": "break",
+      "minimumPass": 2
+    },
+    {
+      "id": "armoured_tin",
+      "shape": "box",
+      "width": 30,
+      "height": 32,
+      "hp": 2,
+      "baseScore": 30,
+      "behaviour": "break",
+      "minimumPass": 3
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "schemaVersion": 1,
+  "logicalWidth": 360,
+  "logicalHeight": 640,
+  "arena": {
+    "left": 20,
+    "right": 340,
+    "top": 78,
+    "bottom": 470
+  },
+  "ballRadius": 7,
+  "launchSpeed": 420,
+  "flightTimeoutSeconds": 3.5,
+  "returnSeconds": 0.9,
+  "minimumReturnSeconds": 0.65,
+  "returnDifficultyCapCatch": 15,
+  "landingMarkerSeconds": 0.45,
+  "firstReturnSeconds": 1.2,
+  "catcherY": 504,
+  "launchY": 490,
+  "catcherInitialWidth": 100,
+  "catcherMinimumWidth": 72,
+  "catcherShrinkPerCatch": 2,
+  "perfectCatchWidthFraction": 0.4,
+  "perfectCatchBonus": 25,
+  "catchSettleSeconds": 0.18,
+  "simulationStepSeconds": 0.008333333333333333,
+  "maxCollisionIterations": 8,
+  "initialObjectCap": 12,
+  "objectCap": 18,
+  "refillEveryCatches": 3,
+  "refillObjectCount": 2,
+  "explosionRadius": 64,
+  "coinScoreDivisor": 100,
+  "coinScoreCap": 25,
+  "completionCoinBonus": 1,
+  "cosmeticPrices": [
+    25,
+    60,
+    100
+  ]
+}
